@@ -1,30 +1,33 @@
-const express = require("express");
-const path = require("path");
+const express = require('express');
 
 // express app
 const app = express();
 
-// Listen for requests
+// listen for requests
 app.listen(3000);
 
-path.join(__dirname, "views", "index.js");
+// register view engine
+app.set('view engine', 'ejs');
+// app.set('views', 'myviews');
 
-app.get("/", (req, res) => {
-  // res.end('<p>Home page</p>')
-  res.sendFile(path.join(__dirname, "views", "index.html"));
+app.get('/', (req, res) => {
+  const blogs = [
+    {title: 'Yoshi finds eggs', snippet: 'Lorem ipsum dolor sit amet consectetur'},
+    {title: 'Mario finds stars', snippet: 'Lorem ipsum dolor sit amet consectetur'},
+    {title: 'How to defeat bowser', snippet: 'Lorem ipsum dolor sit amet consectetur'},
+  ];
+  res.render('index', { title: 'Home', blogs });
 });
 
-app.get("/about", (req, res) => {
-  // res.end('<p>About page</p>')
-  res.sendFile(path.join(__dirname, "views", "about.html"));
+app.get('/about', (req, res) => {
+  res.render('about', { title: 'About' });
 });
 
-// redirects
-app.get("/about-us", (req, res) => {
-  res.redirect("/about");
+app.get('/blogs/create', (req, res) => {
+  res.render('create', { title: 'Create a new blog' });
 });
 
 // 404 page
-app.use((req,res)=>{
-  res.status(404).sendFile(path.join(__dirname, "views", "404.html"))
-})
+app.use((req, res) => {
+  res.status(404).render('404', { title: '404' });
+});
