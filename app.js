@@ -1,18 +1,71 @@
 const express = require("express");
 const morgan = require("morgan");
+const mongoose = require("mongoose");
+const Blog = require("./models/blog");
 
 // express app
 const app = express();
 
-// listen for requests
-app.listen(3000);
+// connect to mongodb
+const uri =
+  "mongodb+srv://test1234:test1234@cluster0.6gk9dki.mongodb.net/node-tuts?retryWrites=true&w=majority";
+
+mongoose
+  .connect(uri, { useNewUrlParser: true, useUnifiedTopology: true })
+  .then((resulr) => {
+    console.log("Connect to db");
+    // listen for requests
+    // We're only going to listen for requests after this connection is complete
+    app.listen(3000);
+  })
+  .catch((err) => {
+    console.log("Erreur", err);
+  });
 
 // middleware & static files
-app.use(express.static('public')) 
-// that mean if i create a folder over here called public then anything inside that 
+app.use(express.static("public"));
+// that mean if i create a folder over here called public then anything inside that
 // folder is going to be made available as a satic file to the frontEnd
 
 app.use(morgan("dev"));
+
+// mongoose and mongo sandbox routes
+app.get("/add-blog", (req, res) => {
+  const blog = new Blog({
+    title: "new blog2",
+    snippet: "about my new blog",
+    body: "more about my new blog",
+  });
+
+  blog
+    .save()
+    .then((result) => {
+      res.send(result);
+    })
+    .catch((err) => {
+      console.log("Err", err);
+    });
+});
+
+app.get("/all-blogs", (req, res) => {
+  Blog.find()
+    .then((result) => {
+      res.send(result);
+    })
+    .catch((err) => {
+      console.log(err);
+    });
+});
+
+app.get("/single-blog", (req, res) => {
+  Blog.findById("64566c65948725187f178daa")
+    .then((result) => {
+      res.send(result);
+    })
+    .catch((err) => {
+      console.log(err);
+    });
+});
 
 // register view engine
 app.set("view engine", "ejs");
@@ -27,21 +80,18 @@ app.use((req, res, next) => {
 });
 
 app.get("/", (req, res) => {
-  const blogs = [
-    {
-      title: "Yoshi finds eggs",
-      snippet: "Lorem ipsum dolor sit amet consectetur",
-    },
-    {
-      title: "Mario finds stars",
-      snippet: "Lorem ipsum dolor sit amet consectetur",
-    },
-    {
-      title: "How to defeat bowser",
-      snippet: "Lorem ipsum dolor sit amet consectetur",
-    },
-  ];
-  res.render("index", { title: "Home", blogs });
+  res.redirect("/blogs");
+});
+
+app.get("/blogs", (req, res) => {
+  Blog.find()
+    .sort({ createdAt: -1 })
+    .then((result) => {
+      res.render("index", { title: "All Blogs", blogs: result });
+    })
+    .catch((err) => {
+      console.log(err);
+    });
 });
 
 app.use((req, res, next) => {
