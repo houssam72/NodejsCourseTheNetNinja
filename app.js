@@ -26,7 +26,9 @@ mongoose
 app.use(express.static("public"));
 // that mean if i create a folder over here called public then anything inside that
 // folder is going to be made available as a satic file to the frontEnd
-
+//
+app.use(express.urlencoded({ extended: true }));
+// En somme, cette ligne de code est souvent incluse dans l'initialisation d'une application Node.js pour configurer le middleware urlencoded et faciliter la manipulation des données de formulaire dans l'application.
 app.use(morgan("dev"));
 
 // mongoose and mongo sandbox routes
@@ -88,6 +90,42 @@ app.get("/blogs", (req, res) => {
     .sort({ createdAt: -1 })
     .then((result) => {
       res.render("index", { title: "All Blogs", blogs: result });
+    })
+    .catch((err) => {
+      console.log(err);
+    });
+});
+
+app.post("/blogs", (req, res) => {
+  const blog = new Blog(req.body);
+
+  blog
+    .save()
+    .then((result) => {
+      res.redirect("/blogs");
+    })
+    .catch((err) => {
+      console.log(err);
+    });
+});
+
+app.get("/blogs/:id", (req, res) => {
+  const id = req.params.id;
+  Blog.findById(id)
+    .then((result) => {
+      res.render("details", { blog: result, title: "Blog Details" });
+    })
+    .catch((err) => {
+      console.log(err);
+    });
+});
+
+app.delete("/blogs/:id", (req, res) => {
+  const id = req.params.id;
+
+  Blog.findByIdAndDelete(id)
+    .then((result) => {
+      res.json({ redirect: "/blogs" });
     })
     .catch((err) => {
       console.log(err);
